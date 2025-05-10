@@ -98,7 +98,7 @@ Example:
 The bot is available in the following languages:
 
 - 🇫🇷 French (fr_FR)
-- 🇬🇪 French (Belgium) (fr_BE)
+- 🇧🇪 French (Belgium) (fr_BE)
 - 🇬🇧 English (en_EN)
 - 🇪🇸 Spanish (es_ES)
 - 🇩🇪 German (de_DE)

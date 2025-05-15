@@ -6,6 +6,8 @@ const {
 } = require("discord.js");
 const fs = require("node:fs");
 const path = require("node:path");
+const languageChecker = require("./languageChecker");
+const languageSeter = require("./languageSeter");
 require("dotenv").config();
 
 // Configuration optimisée du client Discord
@@ -51,8 +53,13 @@ for (const file of commandFiles) {
   if ("data" in command && "execute" in command) {
     client.commands.set(command.data.name, command);
   } else {
+    // Utiliser une traduction par défaut pour les messages de console
+    const defaultLang = languageSeter("en_EN").error_messages;
     console.warn(
-      `\x1b[43m\x1b[1mWARN\x1b[0m: The command at ${filePath} is missing required properties.`
+      `\x1b[43m\x1b[1mWARN\x1b[0m: ${defaultLang.command_missing_properties.replace(
+        "{filePath}",
+        filePath
+      )}`
     );
   }
 }
@@ -71,14 +78,23 @@ client.on("interactionCreate", async (interaction) => {
       `\x1b[41m\x1b[1mERROR\x1b[0m: Error executing command:`,
       error
     );
+
+    // Récupérer la langue configurée pour ce serveur
+    const langData = await languageChecker(interaction.guildId);
+    const langCode = langData?.lang || "en_EN";
+    const language = languageSeter(langCode);
+    const errorLang = language.error_messages
+      ? language.error_messages
+      : languageSeter("en_EN").error_messages;
+
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({
-        content: "There was an error executing this command!",
+        content: errorLang.command_execution_error,
         ephemeral: true,
       });
     } else {
       await interaction.reply({
-        content: "There was an error executing this command!",
+        content: errorLang.command_execution_error,
         ephemeral: true,
       });
     }
@@ -87,7 +103,13 @@ client.on("interactionCreate", async (interaction) => {
 
 // Gestion optimisée des événements
 client.on("ready", () => {
-  console.log(`\x1b[42m\x1b[1mSUCCESS\x1b[0m: Logged in as ${client.user.tag}`);
+  const consoleLang = languageSeter("en_EN").console_messages;
+  console.log(
+    `\x1b[42m\x1b[1mSUCCESS\x1b[0m: ${consoleLang.success_logged_in.replace(
+      "{tag}",
+      client.user.tag
+    )}`
+  );
 
   // Optimisation de la mémoire du cache
   client.guilds.cache.forEach((guild) => {
@@ -103,25 +125,37 @@ client.on("ready", () => {
 
 // Gestion des erreurs
 client.on("error", (error) => {
-  console.error(`\x1b[41m\x1b[1mERROR\x1b[0m: Discord client error:`, error);
+  const errorLang = languageSeter("en_EN").error_messages;
+  console.error(
+    `\x1b[41m\x1b[1mERROR\x1b[0m: ${errorLang.discord_client_error}`,
+    error
+  );
 });
 
 client.on("warn", (warning) => {
-  console.warn(`\x1b[43m\x1b[1mWARN\x1b[0m: Discord client warning:`, warning);
+  const errorLang = languageSeter("en_EN").error_messages;
+  console.warn(
+    `\x1b[43m\x1b[1mWARN\x1b[0m: ${errorLang.discord_client_warning}`,
+    warning
+  );
 });
 
 // Gestion de la déconnexion
 client.on("disconnect", () => {
-  console.warn(`\x1b[43m\x1b[1mWARN\x1b[0m: Bot disconnected from Discord`);
+  const errorLang = languageSeter("en_EN").error_messages;
+  console.warn(`\x1b[43m\x1b[1mWARN\x1b[0m: ${errorLang.bot_disconnected}`);
 });
 
 // Gestion de la reconnexion
 client.on("reconnecting", () => {
-  console.log(`\x1b[43m\x1b[1mINFO\x1b[0m: Bot reconnecting to Discord`);
+  const errorLang = languageSeter("en_EN").error_messages;
+  console.log(`\x1b[43m\x1b[1mINFO\x1b[0m: ${errorLang.bot_reconnecting}`);
 });
 
 // Connexion avec retry
 async function connectWithRetry(maxAttempts = 5) {
+  const errorLang = languageSeter("en_EN").error_messages;
+
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       await client.login(process.env.CLIENT_TOKEN);
@@ -129,13 +163,19 @@ async function connectWithRetry(maxAttempts = 5) {
     } catch (error) {
       if (attempt === maxAttempts) {
         console.error(
-          `\x1b[41m\x1b[1mERROR\x1b[0m: Failed to connect after ${maxAttempts} attempts:`,
+          `\x1b[41m\x1b[1mERROR\x1b[0m: ${errorLang.failed_connect_after_attempts.replace(
+            "{maxAttempts}",
+            maxAttempts
+          )}`,
           error
         );
         process.exit(1);
       }
       console.warn(
-        `\x1b[43m\x1b[1mWARN\x1b[0m: Connection attempt ${attempt} failed, retrying in 5s...`
+        `\x1b[43m\x1b[1mWARN\x1b[0m: ${errorLang.connection_attempt_failed.replace(
+          "{attempt}",
+          attempt
+        )}`
       );
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }

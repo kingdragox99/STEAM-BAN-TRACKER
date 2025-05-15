@@ -1,21 +1,42 @@
 const { SlashCommandBuilder } = require("discord.js");
 const { setupInput, setupOutput } = require("../modules/setupBot");
 const { supabase } = require("../modules/supabBaseConnect");
+const languageChecker = require("../modules/languageChecker");
+const languageSeter = require("../modules/languageSeter");
 
-module.exports = {
-  data: new SlashCommandBuilder()
+// Fonction helper pour obtenir les descriptions traduites des commandes
+function getLocalizedCommand() {
+  const cmdLang = languageSeter("commands");
+
+  return new SlashCommandBuilder()
     .setName("setup")
     .setDescription("Configure le bot pour ce serveur")
+    .setDescriptionLocalizations({
+      "en-US": "Configure the bot for this server",
+      "es-ES": "Configura el bot para este servidor",
+      de: "Konfiguriert den Bot für diesen Server",
+    })
     .addSubcommand((subcommand) =>
       subcommand
         .setName("input")
         .setDescription("Définit le canal d'entrée pour les profils Steam")
+        .setDescriptionLocalizations({
+          "en-US": "Set the input channel for Steam profiles",
+          "es-ES": "Establece el canal de entrada para perfiles de Steam",
+          de: "Setzt den Eingabekanal für Steam-Profile",
+        })
         .addChannelOption((option) =>
           option
             .setName("channel")
             .setDescription(
               "Le canal où les utilisateurs peuvent poster des profils Steam"
             )
+            .setDescriptionLocalizations({
+              "en-US": "The channel where users can post Steam profiles",
+              "es-ES":
+                "El canal donde los usuarios pueden publicar perfiles de Steam",
+              de: "Der Kanal, in dem Benutzer Steam-Profile posten können",
+            })
             .setRequired(true)
         )
     )
@@ -25,12 +46,24 @@ module.exports = {
         .setDescription(
           "Définit le canal de sortie pour les notifications de ban"
         )
+        .setDescriptionLocalizations({
+          "en-US": "Set the output channel for ban notifications",
+          "es-ES":
+            "Establece el canal de salida para notificaciones de prohibición",
+          de: "Setzt den Ausgabekanal für Bann-Benachrichtigungen",
+        })
         .addChannelOption((option) =>
           option
             .setName("channel")
             .setDescription(
               "Le canal où seront envoyées les notifications de ban"
             )
+            .setDescriptionLocalizations({
+              "en-US": "The channel where ban notifications will be sent",
+              "es-ES":
+                "El canal donde se enviarán las notificaciones de prohibición",
+              de: "Der Kanal, in dem Bann-Benachrichtigungen gesendet werden",
+            })
             .setRequired(true)
         )
     )
@@ -38,10 +71,20 @@ module.exports = {
       subcommand
         .setName("lang")
         .setDescription("Définit la langue du bot pour ce serveur")
+        .setDescriptionLocalizations({
+          "en-US": "Set the bot language for this server",
+          "es-ES": "Establece el idioma del bot para este servidor",
+          de: "Setzt die Sprache des Bots für diesen Server",
+        })
         .addStringOption((option) =>
           option
             .setName("language")
             .setDescription("La langue à utiliser")
+            .setDescriptionLocalizations({
+              "en-US": "The language to use",
+              "es-ES": "El idioma a utilizar",
+              de: "Die zu verwendende Sprache",
+            })
             .setRequired(true)
             .addChoices(
               { name: "English", value: "en_EN" },
@@ -70,12 +113,27 @@ module.exports = {
               { name: "עברית", value: "he_IL" }
             )
         )
-    ),
+    );
+}
+
+module.exports = {
+  data: getLocalizedCommand(),
 
   async execute(interaction) {
     try {
       const subcommand = interaction.options.getSubcommand();
       const guildId = interaction.guildId;
+
+      // Récupérer la langue configurée pour ce serveur
+      const langData = await languageChecker(guildId);
+      // Utiliser en_EN par défaut si aucune langue n'est configurée
+      const langCode = langData?.lang || "en_EN";
+      // Récupérer les traductions
+      const language = languageSeter(langCode);
+      // Récupérer les traductions de configuration
+      const setupLang = language.setup
+        ? language.setup
+        : languageSeter("en_EN").setup;
 
       switch (subcommand) {
         case "input": {
@@ -84,13 +142,15 @@ module.exports = {
 
           if (success) {
             await interaction.reply({
-              content: `Le canal d'entrée a été défini sur ${channel}`,
+              content: setupLang.input_channel_set.replace(
+                "{channel}",
+                channel
+              ),
               ephemeral: true,
             });
           } else {
             await interaction.reply({
-              content:
-                "Une erreur est survenue lors de la configuration du canal d'entrée.",
+              content: setupLang.input_error,
               ephemeral: true,
             });
           }
@@ -103,13 +163,15 @@ module.exports = {
 
           if (success) {
             await interaction.reply({
-              content: `Le canal de sortie a été défini sur ${channel}`,
+              content: setupLang.output_channel_set.replace(
+                "{channel}",
+                channel
+              ),
               ephemeral: true,
             });
           } else {
             await interaction.reply({
-              content:
-                "Une erreur est survenue lors de la configuration du canal de sortie.",
+              content: setupLang.output_error,
               ephemeral: true,
             });
           }
@@ -154,7 +216,10 @@ module.exports = {
             if (error) throw error;
 
             await interaction.reply({
-              content: `La langue a été définie sur ${langNames[lang]}`,
+              content: setupLang.language_set.replace(
+                "{language}",
+                langNames[lang]
+              ),
               ephemeral: true,
             });
           } catch (error) {
@@ -163,8 +228,7 @@ module.exports = {
               error
             );
             await interaction.reply({
-              content:
-                "Une erreur est survenue lors de la configuration de la langue.",
+              content: setupLang.language_error,
               ephemeral: true,
             });
           }
@@ -176,8 +240,16 @@ module.exports = {
         "\x1b[41m\x1b[1mERROR\x1b[0m: Setup command failed:",
         error
       );
+
+      const langData = await languageChecker(interaction.guildId);
+      const langCode = langData?.lang || "en_EN";
+      const language = languageSeter(langCode);
+      const setupLang = language.setup
+        ? language.setup
+        : languageSeter("en_EN").setup;
+
       await interaction.reply({
-        content: "Une erreur est survenue lors de l'exécution de la commande.",
+        content: setupLang.command_error,
         ephemeral: true,
       });
     }

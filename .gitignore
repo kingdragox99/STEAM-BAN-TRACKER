@@ -1,3 +1,5 @@
 node_modules
 .env
 config.json
+crawler_stats.json
+crawler_stats_old.json

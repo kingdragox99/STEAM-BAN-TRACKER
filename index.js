@@ -80,6 +80,13 @@ async function handleSteamProfile(message, steamProfileUrl) {
   try {
     stats.messagesProcessed++;
 
+    // Récupérer la langue configurée pour ce serveur
+    const langServerData = await languageChecker(message.guildId);
+    const langCode = langServerData?.lang || "en_EN";
+    const language = languageSeter(langCode);
+    const notificationLang =
+      language.notifications || languageSeter("en_EN").notifications;
+
     const { data: existingProfile } = await supabase
       .from("profil")
       .select("*")
@@ -90,8 +97,12 @@ async function handleSteamProfile(message, steamProfileUrl) {
         embeds: [
           {
             color: 0xffa500,
-            title: "Profile already registered",
-            description: `The profile ${steamProfileUrl} is already in the database.`,
+            title: notificationLang.profile_already_registered,
+            description:
+              notificationLang.profile_already_registered_desc.replace(
+                "{url}",
+                steamProfileUrl
+              ),
             timestamp: new Date(),
           },
         ],
@@ -106,8 +117,11 @@ async function handleSteamProfile(message, steamProfileUrl) {
         embeds: [
           {
             color: 0xff0000,
-            title: "Error",
-            description: `Unable to fetch profile data for ${steamProfileUrl}`,
+            title: notificationLang.error,
+            description: notificationLang.profile_fetch_error.replace(
+              "{url}",
+              steamProfileUrl
+            ),
             timestamp: new Date(),
           },
         ],
@@ -136,18 +150,23 @@ async function handleSteamProfile(message, steamProfileUrl) {
       embeds: [
         {
           color: 0x00ff00,
-          title: "Profile added successfully",
-          description: `Profile **${profileData.name}** has been added to the database.`,
+          title: notificationLang.profile_added,
+          description: notificationLang.profile_added_desc.replace(
+            "{name}",
+            profileData.name
+          ),
           fields: [
             { name: "URL", value: steamProfileUrl, inline: true },
             {
               name: "Status",
-              value: profileData.banStatus ? "🚫 Banned" : "✅ Clean",
+              value: profileData.banStatus
+                ? notificationLang.status_banned
+                : notificationLang.status_clean,
               inline: true,
             },
             {
-              name: "Ban Type",
-              value: profileData.banType || "None",
+              name: notificationLang.ban_type,
+              value: profileData.banType || notificationLang.ban_type_none,
               inline: true,
             },
           ],
@@ -160,12 +179,20 @@ async function handleSteamProfile(message, steamProfileUrl) {
   } catch (error) {
     stats.errors++;
     console.error("Error handling Steam profile:", error);
+
+    // Récupérer la langue pour les messages d'erreur
+    const langServerData = await languageChecker(message.guildId);
+    const langCode = langServerData?.lang || "en_EN";
+    const language = languageSeter(langCode);
+    const notificationLang =
+      language.notifications || languageSeter("en_EN").notifications;
+
     await message.channel.send({
       embeds: [
         {
           color: 0xff0000,
-          title: "Error",
-          description: "An error occurred while processing the profile.",
+          title: notificationLang.error,
+          description: notificationLang.processing_error,
           timestamp: new Date(),
         },
       ],

@@ -93,6 +93,9 @@ function updateDisplay() {
 }
 
 async function checkForBan(client) {
+  // Messages de console par défaut en anglais
+  const consoleLang = languageSeter("en_EN").console_messages;
+
   if (!client) {
     console.error(
       "\x1b[41m\x1b[1mERROR\x1b[0m: Discord client is not provided"
@@ -101,7 +104,9 @@ async function checkForBan(client) {
   }
 
   try {
-    console.log("\x1b[43m\x1b[1mINFO\x1b[0m: Starting ban check");
+    console.log(
+      `\x1b[43m\x1b[1mINFO\x1b[0m: ${consoleLang.info_starting_ban_check}`
+    );
 
     // Réinitialiser les statistiques
     stats.startTime = Date.now();
@@ -121,7 +126,7 @@ async function checkForBan(client) {
     // Récupérer tous les serveurs pour les notifications
     const { data: servers } = await supabase.from("discord").select("*");
     if (!servers || servers.length === 0) {
-      console.log("\x1b[43m\x1b[1mWARN\x1b[0m: No servers configured");
+      console.log(`\x1b[43m\x1b[1mWARN\x1b[0m: ${consoleLang.warn_no_servers}`);
       return;
     }
 
@@ -165,7 +170,10 @@ async function checkForBan(client) {
                 stats.lastUpdate = `${profile.url} → ${profileData.banType}`;
 
                 console.log(
-                  `\x1b[45m\x1b[1mBAN DETECTED\x1b[0m: ${profileData.name} (${profile.url}) - Type: ${profileData.banType}`
+                  `\x1b[45m\x1b[1mBAN DETECTED\x1b[0m: ${consoleLang.ban_detected
+                    .replace("{name}", profileData.name)
+                    .replace("{url}", profile.url)
+                    .replace("{banType}", profileData.banType)}`
                 );
 
                 // Mettre à jour le profil dans la base de données
@@ -196,15 +204,18 @@ async function checkForBan(client) {
                   const channel = await client.channels.fetch(server.output);
                   if (!channel) {
                     console.log(
-                      `\x1b[43m\x1b[1mWARN\x1b[0m: Could not find output channel for server ${server.id_server}`
+                      `\x1b[43m\x1b[1mWARN\x1b[0m: ${consoleLang.warn_output_channel_not_found.replace(
+                        "{serverId}",
+                        server.id_server
+                      )}`
                     );
                     continue;
                   }
 
                   console.log(
-                    `\x1b[44m\x1b[1mNOTIFY\x1b[0m: Sending ban notification to server ${
-                      server.id_server
-                    } (${lang?.lang || "en_EN"})`
+                    `\x1b[44m\x1b[1mNOTIFY\x1b[0m: ${consoleLang.notify_sending_notification
+                      .replace("{serverId}", server.id_server)
+                      .replace("{lang}", lang?.lang || "en_EN")}`
                   );
 
                   await channel.send({
@@ -239,7 +250,10 @@ async function checkForBan(client) {
                   });
 
                   console.log(
-                    `\x1b[42m\x1b[1mSUCCESS\x1b[0m: Ban notification sent to server ${server.id_server}`
+                    `\x1b[42m\x1b[1mSUCCESS\x1b[0m: ${consoleLang.success_notification_sent.replace(
+                      "{serverId}",
+                      server.id_server
+                    )}`
                   );
                 }
               }
@@ -257,15 +271,22 @@ async function checkForBan(client) {
       }
 
       console.log(
-        `\x1b[44m\x1b[1mINFO\x1b[0m: Processed batch of ${profiles.length} profiles (Last ID: ${lastId})`
+        `\x1b[44m\x1b[1mINFO\x1b[0m: ${consoleLang.info_processed_batch
+          .replace("{length}", profiles.length)
+          .replace("{lastId}", lastId)}`
       );
     }
 
     clearInterval(displayInterval);
     updateDisplay();
-    console.log("\x1b[42m\x1b[1mSUCCESS\x1b[0m: Ban check completed!");
+    console.log(
+      `\x1b[42m\x1b[1mSUCCESS\x1b[0m: ${consoleLang.success_ban_check_completed}`
+    );
   } catch (error) {
-    console.error("\x1b[41m\x1b[1mERROR\x1b[0m: Ban check failed:", error);
+    console.error(
+      `\x1b[41m\x1b[1mERROR\x1b[0m: ${consoleLang.error_ban_check_failed}`,
+      error
+    );
   }
 }
 

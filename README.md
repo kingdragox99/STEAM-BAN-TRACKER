@@ -46,7 +46,7 @@ pm2 save
 pm2 startup  # To auto-start on reboot
 ```
 
-Create a .env file in the "Steam-Ban-Checker-Discord-Bot" folder with:
+Create a .env file in the "STEAM-BAN-TRACKER" folder with:
 
 ```bash
 SUPABASE_URL = "SUPA BASE API URL"
@@ -74,7 +74,7 @@ CREATE TABLE profil (
 CREATE TABLE discord (
     id SERIAL PRIMARY KEY,
     id_server TEXT,
-    inpute TEXT,
+    input TEXT,
     output TEXT,
     lang TEXT
 );
@@ -148,6 +148,10 @@ SUPABASE_KEY=your_supabase_key
 - `/setlang` - Change bot language
 - `/setup` - Configure input/output channels
 - `/stats` - Display statistics
+
+## Fix DB script
+
+You can find scripts to run in the scipt folder to help you debug the database or fix it.
 
 ## Contributing
 

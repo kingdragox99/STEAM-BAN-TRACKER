@@ -189,3 +189,4 @@ console.log("3. Vérifier la cohérence des traductions existantes");
 console.log(
   "4. Envisager l'ajout d'un mécanisme de validation automatique des traductions"
 );
+ 

@@ -1,22 +1,55 @@
 ﻿# STEAM BAN TRACKER
 
-Steam Ban Tracker consists of 3 things: a crawler that seeks to find as many Steam profiles as possible, a discord bot that allows users to monitor players they find suspicious, and a verification mechanism that checks whether a profile in the database has just been banned.
+Steam Ban Tracker is a project composed of two main elements:
 
-WIP project please report bug and crash
+1. **A crawler** that automatically discovers and explores Steam profiles
+2. **A Discord bot** that allows users to monitor suspicious players
 
-You can find data visualization here: [SBT Web UI](https://steam-ban-tracker-web-ui.vercel.app/)
+## Data Visualization
 
-[SBT Web UI Github](https://github.com/kingdragox99/STEAM-BAN-TRACKER-WEB-UI)
+You can view data visualizations here: [SBT Web UI](https://steam-ban-tracker-web-ui.vercel.app/)
+
+[SBT Web UI GitHub Repository](https://github.com/kingdragox99/STEAM-BAN-TRACKER-WEB-UI)
+
+## The Discord Bot
+
+The Discord bot serves as a user interface and allows you to:
+
+- Manually add suspicious Steam profiles to monitor
+- Receive real-time notifications when a player gets banned
+- View statistics on monitored profiles and bans
+- Configure input/output channels and bot language
+- Manage settings via intuitive slash commands
+
+The bot supports 24 different languages and easily adapts to any gaming community.
+
+## The Crawler
+
+The crawler works according to these principles:
+
+- It starts from a "seed" profile defined in the .env file
+- It explores friends of each discovered profile, then friends of their friends
+- Discovered profiles are automatically added to the database
+- The exploration process continues permanently to enrich the database
+- Exploration algorithms are optimized to avoid duplicates and respect Steam API limits
+
+This approach allows for progressively building a vast database of Steam profiles that will be monitored to detect potential bans.
 
 ## Installation
 
-Please read everything carefully!
+Please read all instructions carefully!
 
 You need to create an account and get an API key from the following websites:
 
 [Discord API](https://discord.com/developers/applications)
 [SUPABASE](https://www.supabase.com/)
 [Steam API](https://steamcommunity.com/dev/apikey)
+
+I strongly recommend not running the bot on a root profile!
+
+```bash
+adduser steam-ban-tracker
+```
 
 Run the following commands in terminal:
 
@@ -49,11 +82,11 @@ pm2 startup  # To auto-start on reboot
 Create a .env file in the "STEAM-BAN-TRACKER" folder with:
 
 ```bash
-SUPABASE_URL = "SUPA BASE API URL"
-SUPABASE_KEY = "SUPA BASE API KEY"
+SUPABASE_URL = "SUPABASE API URL"
+SUPABASE_KEY = "SUPABASE API KEY"
 CLIENT_TOKEN = "DISCORD BOT API KEY"
 STEAM_API = "STEAM API KEY"
-CRAWLER_SEED = "https://steamcommunity.com/id/El_Papite/" # Steam profile URL
+CRAWLER_SEED = "https://steamcommunity.com/id/El_Papite/" # Initial Steam profile URL
 DEBUG = false or true
 ```
 
@@ -62,12 +95,12 @@ Supabase database structure:
 ```sql
 CREATE TABLE profil (
     id SERIAL PRIMARY KEY,
-    status TEXT
+    status TEXT,
     url VARCHAR,
     steam_name TEXT,
     ban BOOLEAN NOT NULL DEFAULT FALSE,
-    ban_type TEXT
-    ban_date TIMESTAMP
+    ban_type TEXT,
+    ban_date TIMESTAMP,
     last_checked TIMESTAMP
 );
 
@@ -80,17 +113,17 @@ CREATE TABLE discord (
 );
 ```
 
-Go on discord and type in channels
+On Discord, use these commands in your channels:
 
-Example:
+Example channels:
 
-- Suspected cheater
-- Confirmed cheater
+- Suspected cheaters
+- Confirmed cheaters
 
 ```bash
-  /setup input // In your input channel where you put the url of suspected cheaters
-  /setup output // If a cheater was detected, he will be put here
-  /setup lang (fr/en/es) // Change lang FR EN ES
+  /setup input // In your input channel where you put URLs of suspicious players
+  /setup output // If a cheater is detected, they will be reported here
+  /setup lang (fr/en/es) // Change language FR EN ES etc.
 ```
 
 ## Supported Languages
@@ -131,6 +164,7 @@ The bot is available in the following languages:
 - Simple and intuitive interface
 - Discord slash commands
 - Automatic daily updates
+- Continuous exploration of new profiles
 
 ## Configuration
 
@@ -141,17 +175,20 @@ CLIENT_TOKEN=your_discord_token
 CLIENT_ID=your_client_id
 SUPABASE_URL=your_supabase_url
 SUPABASE_KEY=your_supabase_key
+STEAM_API=your_steam_api_key
+CRAWLER_SEED=initial_profile_url
+DEBUG=false
 ```
 
 ## Commands
 
-- `/setlang` - Change bot language
+- `/setup lang` - Change bot language
 - `/setup` - Configure input/output channels
 - `/stats` - Display statistics
 
-## Fix DB script
+## Maintenance Scripts
 
-You can find scripts to run in the scipt folder to help you debug the database or fix it.
+You can find scripts in the "script" folder to help you debug or fix the database.
 
 ## Contributing
 

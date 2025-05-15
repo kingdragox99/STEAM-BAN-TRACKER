@@ -9,37 +9,44 @@ const languageSeter = (data) => {
     return langCache.get(data);
   }
 
-  const langMap = {
-    fr_FR: language.fr_FR,
-    fr_BE: language.fr_BE,
-    en_EN: language.en_EN,
-    es_ES: language.es_ES,
-    de_DE: language.de_DE,
-    de_AT: language.de_AT,
-    pl_PL: language.pl_PL,
-    da_DK: language.da_DK,
-    tr_TR: language.tr_TR,
-    nl_NL: language.nl_NL,
-    nl_BE: language.nl_BE,
-    ru_RU: language.ru_RU,
-    zh_CN: language.zh_CN,
-    ja_JP: language.ja_JP,
-    ko_KR: language.ko_KR,
-    th_TH: language.th_TH,
-    sv_SE: language.sv_SE,
-    fi_FI: language.fi_FI,
-    pt_PT: language.pt_PT,
-    pt_BR: language.pt_BR,
-    ar_SA: language.ar_SA,
-    ar_MA: language.ar_MA,
-    ar_AE: language.ar_AE,
-    he_IL: language.he_IL,
-    command: language.command,
-  };
+  // Cas pour les objets spécifiques
+  if (
+    data === "console_messages" ||
+    data === "error_messages" ||
+    data === "setup" ||
+    data === "commands" ||
+    data === "notifications" ||
+    data === "command"
+  ) {
+    return language[data];
+  }
 
-  const result = langMap[data] || language.en_EN;
-  langCache.set(data, result);
-  return result;
+  // Cas pour les langues
+  const lang = language[data];
+  if (lang) {
+    // Ajouter les sous-objets à l'objet de langue
+    if (language.console_messages && language.console_messages[data]) {
+      lang.console_messages = language.console_messages[data];
+    }
+    if (language.error_messages && language.error_messages[data]) {
+      lang.error_messages = language.error_messages[data];
+    }
+    if (language.setup && language.setup[data]) {
+      lang.setup = language.setup[data];
+    }
+    if (language.commands && language.commands[data]) {
+      lang.commands = language.commands[data];
+    }
+    if (language.notifications && language.notifications[data]) {
+      lang.notifications = language.notifications[data];
+    }
+
+    langCache.set(data, lang);
+    return lang;
+  }
+
+  // Fallback sur l'anglais
+  return languageSeter("en_EN");
 };
 
 module.exports = languageSeter;

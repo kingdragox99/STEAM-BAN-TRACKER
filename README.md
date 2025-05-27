@@ -35,6 +35,47 @@ The crawler works according to these principles:
 
 This approach allows for progressively building a vast database of Steam profiles that will be monitored to detect potential bans.
 
+## Crawler Modes
+
+The crawler can operate in different optimization modes that can be activated via command line arguments:
+
+- **Standard Mode** (default): balanced for normal daily use
+
+  - Daily limit: 40,000 profiles
+  - Optimized for moderate resource usage
+
+- **Performance Mode** (`--performance`): optimized for more powerful systems
+
+  - Daily limit: 100,000 profiles
+  - Increased batch processing and concurrent requests
+  - Ideal for dedicated servers with good internet connection
+
+- **Ultra Mode** (`--ultra`): maximum performance for high-end systems
+
+  - Daily limit: 200,000 profiles
+  - Reduced delays and highly parallelized processing
+  - Requires excellent internet connection and significant system resources
+
+- **Low Memory Mode** (`--low-memory`): optimized for systems with limited RAM
+
+  - Reduces in-memory cache size
+  - Can be combined with other modes according to your needs
+
+- **Debug Mode** (`--debug`): displays detailed information for troubleshooting
+
+  - Includes detailed logs of crawler operations
+  - Useful for identifying issues or understanding crawler behavior
+
+- **Custom Workers** (`--workers=N`): sets the number of concurrent workers
+  - Example: `--workers=4` to use 4 workers
+  - Allows fine-tuning performance according to your configuration
+
+These modes can be combined. Example for a powerful system:
+
+```bash
+node crawler.js --performance --workers=8
+```
+
 ## Installation
 
 Please read all instructions carefully!
